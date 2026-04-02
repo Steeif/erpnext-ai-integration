@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, erpnextConnections, erpnextDataCache } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { encryptCredential, decryptCredential } from "./crypto";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -89,4 +90,103 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getERPNextConnection(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(erpnextConnections)
+    .where(eq(erpnextConnections.userId, userId))
+    .limit(1);
+
+  if (result.length === 0) return undefined;
+
+  const connection = result[0];
+  // Decrypt credentials when retrieving
+  return {
+    ...connection,
+    apiKey: decryptCredential(connection.apiKey),
+    apiSecret: decryptCredential(connection.apiSecret),
+  };
+}
+
+export async function createERPNextConnection(
+  userId: number,
+  erpnextUrl: string,
+  apiKey: string,
+  apiSecret: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Encrypt credentials before storing
+  const encryptedApiKey = encryptCredential(apiKey);
+  const encryptedApiSecret = encryptCredential(apiSecret);
+
+  const result = await db.insert(erpnextConnections).values({
+    userId,
+    erpnextUrl,
+    apiKey: encryptedApiKey,
+    apiSecret: encryptedApiSecret,
+  });
+
+  return result;
+}
+
+export async function updateERPNextConnectionTest(connectionId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(erpnextConnections)
+    .set({ lastTestedAt: new Date() })
+    .where(eq(erpnextConnections.id, connectionId));
+}
+
+export async function getCachedERPNextData(
+  connectionId: number,
+  verifiedUserId: string,
+  doctype: string
+) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(erpnextDataCache)
+    .where(
+      and(
+        eq(erpnextDataCache.connectionId, connectionId),
+        eq(erpnextDataCache.verifiedUserId, verifiedUserId),
+        eq(erpnextDataCache.doctype, doctype),
+        gt(erpnextDataCache.expiresAt, new Date())
+      )
+    )
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function cacheERPNextData(
+  connectionId: number,
+  userId: number,
+  verifiedUserId: string,
+  doctype: string,
+  data: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour cache
+
+  await db.insert(erpnextDataCache).values({
+    connectionId,
+    userId,
+    verifiedUserId,
+    doctype,
+    data,
+    expiresAt,
+  });
+}
+
