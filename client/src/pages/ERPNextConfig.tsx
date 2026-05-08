@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,10 +35,12 @@ export default function ERPNextConfig() {
   const { data: connection, isLoading: isCheckingConnection } = trpc.erpnext.getConnection.useQuery();
   const configMutation = trpc.erpnext.configureConnection.useMutation();
 
-  // Update UI when connection status changes
-  if (connection?.configured && !isConfigured) {
-    setIsConfigured(true);
-  }
+  // Update UI when connection status changes (using useEffect to avoid render-phase updates)
+  useEffect(() => {
+    if (connection?.configured && !isConfigured) {
+      setIsConfigured(true);
+    }
+  }, [connection?.configured, isConfigured])
 
   const onSubmit = async (data: ConfigFormData) => {
     try {
