@@ -31,7 +31,7 @@ This is a secure web application that enables users to connect to their self-hos
 - **Token-Based Authentication**: Uses ERPNext's token-based authentication (API Key + API Secret)
 - **Encrypted Storage**: All credentials are encrypted at rest using AES-256-GCM
 - **HTTPS Only**: All API calls to ERPNext use HTTPS
-- **User Authentication**: Manus OAuth integration ensures only authenticated users can access the application
+- **User Authentication**: OAuth integration ensures only authenticated users can access the application
 - **Role-Based Access**: User roles are managed through the database
 
 ## Architecture
@@ -40,7 +40,7 @@ This is a secure web application that enables users to connect to their self-hos
 - **Frontend**: React 19 with TypeScript, Tailwind CSS 4, shadcn/ui components
 - **Backend**: Express 4 with tRPC 11 for type-safe API procedures
 - **Database**: MySQL with Drizzle ORM for type-safe queries
-- **Authentication**: Manus OAuth for user authentication
+- **Authentication**: OAuth for user authentication
 - **Encryption**: Node.js crypto module (AES-256-GCM)
 
 ### Project Structure
@@ -70,7 +70,7 @@ erpnext-integration/
 ## Database Schema
 
 ### `users` Table
-Stores authenticated user information from Manus OAuth.
+Stores authenticated user information from OAuth.
 
 ### `erpnext_connections` Table
 Stores ERPNext connection credentials per user:
@@ -137,7 +137,7 @@ Credentials are encrypted using AES-256-GCM:
 3. **Token-based auth**: Uses ERPNext's built-in token authentication
 4. **Input validation**: All user inputs are validated with Zod schemas
 5. **Error handling**: Sensitive error details are not exposed to frontend
-6. **Session management**: Manus OAuth handles user session security
+6. **Session management**: OAuth handles user session security
 
 ## Getting Started
 
@@ -156,9 +156,9 @@ Credentials are encrypted using AES-256-GCM:
    # Database connection
    DATABASE_URL=mysql://user:password@localhost:3306/erpnext_integration
    
-   # OAuth configuration (provided by Manus)
+   # OAuth configuration 
    VITE_APP_ID=<your-app-id>
-   OAUTH_SERVER_URL=<manus-oauth-url>
+   OAUTH_SERVER_URL=<oauth-url>
    JWT_SECRET=<jwt-secret>
    ```
 
@@ -186,7 +186,7 @@ Credentials are encrypted using AES-256-GCM:
 ## Usage Guide
 
 ### Step 1: Configure ERPNext Connection
-1. Sign in with your Manus account
+1. Sign in with your account
 2. Click "Configure Connection"
 3. Enter your ERPNext instance URL (e.g., `https://erpnext.example.com`)
 4. Enter your API Key and API Secret (generated in ERPNext User settings)
@@ -264,10 +264,6 @@ pnpm test
 - Keep dependencies updated regularly
 - Monitor ERPNext API changes
 - Review security advisories
-
-## License
-
-This project is built with Manus and follows the Manus terms of service.
 
 ## Additional Resources
 
