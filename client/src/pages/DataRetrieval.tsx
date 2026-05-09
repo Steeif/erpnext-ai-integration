@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, AlertCircle, CheckCircle, Table, ArrowLeft } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle, Table, ArrowLeft, Sparkles } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import AIAnalysis from "@/components/AIAnalysis";
 
 const verifySchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -241,54 +242,72 @@ export default function DataRetrieval({ onBack }: { onBack: () => void }) {
                 </CardContent>
               </Card>
             ) : selectedDoctype && displayData.length > 0 ? (
-              <Card className="shadow-lg overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {selectedDoctype} Data ({displayData.length} record{displayData.length !== 1 ? "s" : ""})
-                  </CardTitle>
-                  <CardDescription>
-                    {userData?.cached && "Cached data - retrieved from cache"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto -mx-6 px-6">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-200 bg-slate-50">
-                          {columns.map((col) => (
-                            <th
-                              key={col}
-                              className="px-4 py-3 text-left font-semibold text-slate-700 whitespace-nowrap"
-                            >
-                              {col}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {displayData.map((record, idx) => (
-                          <tr
-                            key={idx}
-                            className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
-                          >
+              <div className="space-y-6">
+                <Card className="shadow-lg overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {selectedDoctype} Data ({displayData.length} record{displayData.length !== 1 ? "s" : ""})
+                    </CardTitle>
+                    <CardDescription>
+                      {userData?.cached && "Cached data - retrieved from cache"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto -mx-6 px-6">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-slate-200 bg-slate-50">
                             {columns.map((col) => (
-                              <td
-                                key={`${idx}-${col}`}
-                                className="px-4 py-3 text-slate-600 truncate max-w-xs"
-                                title={String(record[col])}
+                              <th
+                                key={col}
+                                className="px-4 py-3 text-left font-semibold text-slate-700 whitespace-nowrap"
                               >
-                                {record[col] !== null && record[col] !== undefined
-                                  ? String(record[col]).substring(0, 50)
-                                  : "—"}
-                              </td>
+                                {col}
+                              </th>
                             ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+                        </thead>
+                        <tbody>
+                          {displayData.map((record, idx) => (
+                            <tr
+                              key={idx}
+                              className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                            >
+                              {columns.map((col) => (
+                                <td
+                                  key={`${idx}-${col}`}
+                                  className="px-4 py-3 text-slate-600 truncate max-w-xs"
+                                  title={String(record[col])}
+                                >
+                                  {record[col] !== null && record[col] !== undefined
+                                    ? String(record[col]).substring(0, 50)
+                                    : "—"}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* AI Analysis Section */}
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-purple-500" />
+                      AI-Powered Analysis
+                    </CardTitle>
+                    <CardDescription>
+                      Analyze, get insights, detect anomalies, and generate reports
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AIAnalysis doctype={selectedDoctype} data={displayData} />
+                  </CardContent>
+                </Card>
+              </div>
             ) : selectedDoctype ? (
               <Card className="shadow-lg">
                 <CardContent className="pt-6">

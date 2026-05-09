@@ -12,6 +12,12 @@ import {
   cacheERPNextData,
 } from "./db";
 import { createERPNextClient } from "./erpnext";
+import {
+  analyzeData,
+  generateInsights,
+  detectAnomalies,
+  generateReport,
+} from "./ai";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -233,6 +239,89 @@ export const appRouter = router({
         return [];
       }
     }),
+  }),
+
+  // AI Analysis Router
+  ai: router({
+    // Analyze ERPNext data
+    analyzeData: protectedProcedure
+      .input(
+        z.object({
+          doctype: z.string().min(1, "DocType is required"),
+          data: z.unknown(),
+          customPrompt: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          return await analyzeData(input.doctype, input.data, input.customPrompt);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "Failed to analyze data",
+          });
+        }
+      }),
+
+    // Generate insights and recommendations
+    generateInsights: protectedProcedure
+      .input(
+        z.object({
+          doctype: z.string().min(1, "DocType is required"),
+          data: z.unknown(),
+          context: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          return await generateInsights(input.doctype, input.data, input.context);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "Failed to generate insights",
+          });
+        }
+      }),
+
+    // Detect anomalies in data
+    detectAnomalies: protectedProcedure
+      .input(
+        z.object({
+          doctype: z.string().min(1, "DocType is required"),
+          data: z.unknown(),
+          thresholds: z.record(z.string(), z.unknown()).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          return await detectAnomalies(input.doctype, input.data, input.thresholds);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "Failed to detect anomalies",
+          });
+        }
+      }),
+
+    // Generate professional report
+    generateReport: protectedProcedure
+      .input(
+        z.object({
+          doctype: z.string().min(1, "DocType is required"),
+          data: z.unknown(),
+          reportType: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          return await generateReport(input.doctype, input.data, input.reportType);
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error instanceof Error ? error.message : "Failed to generate report",
+          });
+        }
+      }),
   }),
 });
 
